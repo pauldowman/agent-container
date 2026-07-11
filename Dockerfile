@@ -139,6 +139,9 @@ RUN npm config set prefix "$HOME/.npm-global" && \
         tree-sitter-cli && \
     echo 'export PATH="$HOME/.npm-global/bin:$PATH"' | sudo tee -a /etc/zsh/zshrc /etc/bash.bashrc > /dev/null
 
+# OpenCode CLI
+RUN curl -fsSL https://opencode.ai/install | bash
+
 # Tuicr https://tuicr.dev/
 RUN cargo install tuicr
 
