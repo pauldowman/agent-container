@@ -16,7 +16,7 @@ A Docker-based development environment with SSH access, supporting multiple lang
 ## Key files
 
 - `Dockerfile` — main image build
-- `Dockerfile.gui` — extends main image with XFCE4 + xrdp for GUI access
+- `Dockerfile.gui` — extends main image with XFCE4 + xrdp for GUI access. The xrdp/GUI login password is the username (`chpasswd`). It wires `pam_gnome_keyring` into `/etc/pam.d/xrdp-sesman` so the GNOME login keyring is created/unlocked with that login password at login — without this, Secret Service apps (e.g. LibreSafe's vault pepper) hit a locked login keyring and prompt for a never-set password. The `home` volume persists keyrings; if a stale keyring with an unknown password is stuck, delete `~/.local/share/keyrings/*` and re-login so PAM recreates it.
 - `docker-compose.yml` — runs the container; reads `USERNAME`, `SSH_AUTHORIZED_KEYS`, and `CODE_DIR` from env
 - `scripts/start.sh` — container entrypoint: writes SSH authorized_keys, sets up Docker socket access, starts sshd
 - `scripts/docker-shim` — installed as `/usr/local/bin/docker` (shadows the real `/usr/bin/docker`). **macOS-host only:** on a Mac, the `/Users -> /home` symlink means path-canonicalizing tools (notably `cargo-prove --docker`) pass an unshared `/home/...` bind source that Docker Desktop rejects. The shim rewrites bind-mount sources to the shared host path, derived from `/proc/self/mountinfo`. No-op on Linux hosts (no Docker Desktop shared mounts).

@@ -6,10 +6,19 @@ USER root
 RUN echo "$USERNAME:$USERNAME" | chpasswd
 
 RUN apt-get update && apt-get install -y xfce4 xrdp dbus-x11 fonts-liberation \
+    gnome-keyring libsecret-tools \
     && adduser xrdp ssl-cert \
     && printf '#!/bin/sh\nexec startxfce4\n' > /etc/xrdp/startwm.sh \
     && apt-get clean \
     && rm -rf /usr/share/backgrounds/xfce/*
+
+# Unlock the GNOME login keyring at xrdp login. Without this, apps that use the
+# Secret Service (e.g. LibreSafe storing its vault pepper) hit a locked login
+# keyring and prompt for a password that was never set. pam_gnome_keyring creates
+# and unlocks the login keyring with the login password (the username, set by the
+# chpasswd above), so it auto-unlocks every session with no prompt.
+RUN printf 'auth     optional  pam_gnome_keyring.so\nsession  optional  pam_gnome_keyring.so auto_start\n' \
+    >> /etc/pam.d/xrdp-sesman
 
 COPY scripts/start-gui.sh /usr/local/bin/start-gui.sh
 
