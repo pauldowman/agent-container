@@ -205,7 +205,9 @@ Suggested permissions for a token that can push, work with PRs and issues, manag
 
 ## Git Commit Signing
 
-SSH commit signing works via the mounted SSH agent socket. Configure git in your dotfiles:
+SSH commit signing works via the forwarded SSH agent. Each connection's forwarded socket is symlinked to the stable path `~/.ssh/agent.sock` (which all shells use), and `ssh-agent-relink` re-points the link whenever its target dies — on each new connection via `~/.ssh/rc`, and within a minute via a watchdog loop in the container entrypoint — so the agent keeps working as SSH sessions come and go, as long as at least one connection with agent forwarding is alive.
+
+Configure git in your dotfiles:
 
 ```bash
 git config --global gpg.format ssh

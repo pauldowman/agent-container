@@ -1,0 +1,27 @@
+#!/bin/sh
+# Keep ~/.ssh/agent.sock pointing at a live forwarded SSH agent socket.
+#
+# sshd creates a per-connection agent socket under /tmp/ssh-*/ and deletes it
+# on disconnect, so shells use the stable ~/.ssh/agent.sock symlink instead.
+# The link goes dangling when the connection it points at closes. This script
+# leaves a working link untouched (so a newer connection's disconnect doesn't
+# strand older ones) and otherwise re-points it at any live socket. Called
+# from ~/.ssh/rc on each connection and from a watchdog loop in start.sh.
+
+link="$HOME/.ssh/agent.sock"
+
+# ssh-add exits 2 when it can't reach an agent; 0/1 mean the socket is live
+alive() {
+	SSH_AUTH_SOCK="$1" ssh-add -l >/dev/null 2>&1 || [ $? -ne 2 ]
+}
+
+alive "$link" && exit 0
+
+for sock in /tmp/ssh-*/agent.*; do
+	[ -S "$sock" ] || continue
+	if alive "$sock"; then
+		ln -sf "$sock" "$link"
+		exit 0
+	fi
+done
+exit 1

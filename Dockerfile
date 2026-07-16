@@ -91,10 +91,14 @@ RUN userdel -r ubuntu 2>/dev/null || true && \
     echo "$USERNAME ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers && \
     ln -s /home /Users && \
     mkdir -p /home/$USERNAME/.ssh && \
-    printf 'if [ -n "$SSH_AUTH_SOCK" ]; then\n    ln -sf "$SSH_AUTH_SOCK" "$HOME/.ssh/agent.sock"\n    tmux set-environment -g SSH_AUTH_SOCK "$SSH_AUTH_SOCK" 2>/dev/null || true\nfi\n' \
-    > /home/$USERNAME/.ssh/rc && \
-    chmod 755 /home/$USERNAME/.ssh/rc && \
     chown -R $USERNAME:$USERNAME /home/$USERNAME/.ssh
+
+# Stable SSH agent socket: ssh-agent-relink keeps ~/.ssh/agent.sock (the path
+# all shells use via /etc/zsh/zshrc) pointing at a live per-connection
+# forwarded socket, repairing the link when the connection it tracks closes.
+# Called from ~/.ssh/rc on each connection and from a watchdog loop in start.sh.
+COPY scripts/ssh-agent-relink /usr/local/bin/ssh-agent-relink
+COPY --chown=$USERNAME:$USERNAME scripts/ssh-rc /home/$USERNAME/.ssh/rc
 
 # Fix ownership of rust/cargo dirs for user and set default toolchain
 RUN chown -R $USERNAME:$USERNAME /usr/local/rustup /usr/local/cargo
