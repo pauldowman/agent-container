@@ -76,6 +76,12 @@ SSH_PORT=2223
 FORWARD_PORTS=3000,5173
 ```
 
+## Session Persistence
+
+tmux sessions don't survive a container rebuild, but their layout does: [tmux-resurrect](https://github.com/tmux-plugins/tmux-resurrect) and [tmux-continuum](https://github.com/tmux-plugins/tmux-continuum) are baked into the image and loaded from `/etc/tmux.conf`, so they apply only inside the container and don't require any plugin lines in your own tmux config (dotfiles stay portable to other machines).
+
+Continuum auto-saves every 15 minutes while a client is attached, and auto-restores when the tmux server starts — so after a rebuild, the first `dev <session-name>` brings back all saved sessions with their windows, panes, layouts, and working directories (the session just created by `dev` keeps its fresh shell window alongside its restored ones). Running programs and shell history are not restored. Manual save is `prefix + Ctrl-s`, manual restore is `prefix + Ctrl-r`. Save files live under the home directory, which is a persistent volume.
+
 ## Configuration
 
 The `.env` and `.env.<instance>` files are gitignored. Available options:

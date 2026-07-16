@@ -113,6 +113,18 @@ RUN ARCH=$(uname -m | sed 's/aarch64/arm64/') && \
     rm nvim-linux-${ARCH}.tar.gz && \
     ln -sf /opt/nvim-linux-${ARCH}/bin/nvim /usr/local/bin/nvim
 
+# tmux-resurrect + tmux-continuum: auto-save/restore tmux sessions across
+# container rebuilds. Loaded from /etc/tmux.conf (read before ~/.tmux.conf) so
+# user dotfiles stay portable to other environments. Plugins live in /opt (an
+# image layer, refreshed on rebuild); saved state lands under ~ (home volume).
+RUN git clone --depth 1 https://github.com/tmux-plugins/tmux-resurrect /opt/tmux-plugins/tmux-resurrect && \
+    git clone --depth 1 https://github.com/tmux-plugins/tmux-continuum /opt/tmux-plugins/tmux-continuum && \
+    printf '%s\n' \
+      'set -g @continuum-restore "on"' \
+      'run-shell /opt/tmux-plugins/tmux-resurrect/resurrect.tmux' \
+      'run-shell /opt/tmux-plugins/tmux-continuum/continuum.tmux' \
+      > /etc/tmux.conf
+
 USER $USERNAME
 
 # Default user config (overridden by dotfiles install below when DOTFILES_REPO is set)
