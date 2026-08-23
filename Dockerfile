@@ -158,6 +158,11 @@ RUN npm config set prefix "$HOME/.npm-global" && \
 # OpenCode CLI
 RUN curl -fsSL https://opencode.ai/install | bash
 
+# Oh My Pi (omp) coding agent
+USER root
+RUN curl -fsSL https://omp.sh/install | PI_INSTALL_DIR=/usr/local/bin sh
+USER $USERNAME
+
 # Tuicr https://tuicr.dev/
 RUN cargo install tuicr
 
