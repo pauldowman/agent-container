@@ -146,22 +146,26 @@ RUN go install golang.org/x/tools/gopls@latest
 # Claude CLI
 RUN curl -fsSL https://claude.ai/install.sh | bash
 
-# Codex CLI and language servers (user-scope npm globals)
-RUN npm config set prefix "$HOME/.npm-global" && \
-    npm install -g typescript typescript-language-server @openai/codex@latest \
+# Language servers (system-scope npm globals, refreshed on every rebuild —
+# user-scope installs land in the home volume, which only seeds once)
+USER root
+RUN npm install -g typescript typescript-language-server \
         pyright \
         @nomicfoundation/solidity-language-server \
         bash-language-server \
-        tree-sitter-cli && \
-    echo 'export PATH="$HOME/.npm-global/bin:$PATH"' | sudo tee -a /etc/zsh/zshrc /etc/bash.bashrc > /dev/null
+        tree-sitter-cli
+USER $USERNAME
+
+# Codex CLI: user-scope (--prefix puts the binary in ~/.local/bin, already on
+# PATH). Agent CLIs must be user-installed because they update themselves in
+# place; root-owned system copies would break their updaters.
+RUN npm install -g --prefix "$HOME/.local" @openai/codex@latest
 
 # OpenCode CLI
 RUN curl -fsSL https://opencode.ai/install | bash
 
-# Oh My Pi (omp) coding agent
-USER root
-RUN curl -fsSL https://omp.sh/install | PI_INSTALL_DIR=/usr/local/bin sh
-USER $USERNAME
+# Oh My Pi (omp) coding agent — user-scope (self-updating, see note above)
+RUN curl -fsSL https://omp.sh/install | sh
 
 # Tuicr https://tuicr.dev/
 RUN cargo install tuicr

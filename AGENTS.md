@@ -12,6 +12,7 @@ A Docker-based development environment with SSH access, supporting multiple lang
 - Host Docker socket is mounted for running Docker commands inside the container
 - Installs dotfiles from https://github.com/pauldowman/dotfiles
 - Includes neovim, Claude CLI, tmux, zsh, fzf, ripgrep, mise, and dev tools
+- Agent CLIs (claude, opencode, codex, omp) are installed user-scope (in the home volume) because they self-update in place; a root-owned system copy would break their updaters. Other npm globals are system-scope so rebuilds refresh them.
 
 ## Key files
 
