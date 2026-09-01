@@ -112,7 +112,7 @@ Two optional scripts can be created locally (both are gitignored):
 
 **`custom-install-root.sh`** — runs as root after the toolchains are installed, before the user is created. Use for extra `apt` packages or system-level config.
 
-**`custom-install-user.sh`** — runs as the container user after dotfiles are installed. Use for personal tools, shell plugins, or user-level config.
+**`custom-install-user.sh`** — runs as the container user after dotfiles are installed. Use for personal tools, shell plugins, or user-level config. It runs at image build time, so writes under `$HOME` only reach a newly created `home` volume — rebuilding against an existing one won't re-apply them — and there are no GitHub credentials available. Anything that needs a token, or that must re-apply on every rebuild, has to be run by hand inside the container instead.
 
 Example `custom-install-user.sh`:
 
