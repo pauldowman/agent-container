@@ -140,15 +140,14 @@ RUN if [ -n "$DOTFILES_REPO" ]; then \
       cd ~/dotfiles && $DOTFILES_INSTALL_CMD; \
     fi
 
-# Go language server
-RUN go install golang.org/x/tools/gopls@latest
-
 # Claude CLI
 RUN curl -fsSL https://claude.ai/install.sh | bash
 
-# Language servers (system-scope npm globals, refreshed on every rebuild —
-# user-scope installs land in the home volume, which only seeds once)
+# Language servers (system scope, refreshed on every rebuild — user-scope
+# installs land in the home volume, which only seeds once)
 USER root
+RUN GOBIN=/usr/local/bin GOPATH=/tmp/gopath GOCACHE=/tmp/gocache go install golang.org/x/tools/gopls@latest && \
+    rm -rf /tmp/gopath /tmp/gocache
 RUN npm install -g typescript typescript-language-server \
         pyright \
         @nomicfoundation/solidity-language-server \
